@@ -498,3 +498,7 @@ main, .footer { position: relative; z-index: 1; }
 /* softer background: grid slightly blurred and faded towards the edges, gentler scan line */
 .pagegrid__base { filter: blur(.6px); -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 45%, #000 40%, rgba(0,0,0,.35) 100%); mask-image: radial-gradient(ellipse 85% 70% at 50% 45%, #000 40%, rgba(0,0,0,.35) 100%); }
 .backdrop__scan { opacity: .45; }
+
+.msg__again { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+.msg__done b { color: var(--ink); }
+.msg__again .btn { padding: .65rem 1.1rem; font-size: .92rem; min-height: 0; }

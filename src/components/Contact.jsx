@@ -66,28 +66,34 @@ const TYPES = ['Job opportunity', 'Project', 'Just saying hi']
 /* Message box: sends straight to her inbox through Web3Forms. */
 function MessageBox() {
   const [type, setType] = useState(TYPES[0])
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [errors, setErrors] = useState({})
-  const [state, setState] = useState('idle') // idle | sending | sent | failed
+  const [state, setState] = useState('idle') // idle | sending | sent | failed | gmail
   const set = (k) => (e) => { setForm((f) => ({ ...f, [k]: e.target.value })); setErrors((x) => ({ ...x, [k]: '' })) }
 
   const validate = () => {
     const e = {}
     if (!form.name.trim()) e.name = 'Enter your name'
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) e.email = 'Enter a valid email so I can reply'
+    if (!form.subject.trim()) e.subject = 'Add a subject'
     if (form.message.trim().length < 5) e.message = 'Write a short message'
     setErrors(e)
     return !Object.keys(e).length
   }
 
   const submit = async (ev) => {
-    ev.preventDefault()
-    if (ev.target.botcheck?.checked) return
+    ev?.preventDefault?.()
+    if (ev?.target?.botcheck?.checked) return
     if (!validate()) return
-    const subject = `${type} · message from ${form.name.trim()}`
+    const subject = `${form.subject.trim()} (${type})`
     if (!contact.formKey) {
-      // no key yet: open the visitor's email app with everything filled in
-      window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${form.message.trim()}\n\n${form.name.trim()} · ${form.email.trim()}`)}`
+      // open Gmail's compose window with everything already typed in
+      const body = `${form.message.trim()}\n\n—\n${form.name.trim()}\n${form.email.trim()}`
+      const q = `to=${encodeURIComponent(contact.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+      const phone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      if (phone) window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+      else window.open(`https://mail.google.com/mail/?view=cm&fs=1&${q}`, '_blank', 'noopener')
+      setState('gmail')
       return
     }
     setState('sending')
@@ -105,13 +111,23 @@ function MessageBox() {
     } catch { setState('failed') }
   }
 
-  const reset = () => { setForm({ name: '', email: '', message: '' }); setState('idle') }
+  const reset = () => { setForm({ name: '', email: '', subject: '', message: '' }); setState('idle') }
 
   return (
     <div className="msg">
       <div className="msg__head"><span className="msg__tag">NEW TICKET</span><span className="msg__status">open</span></div>
       <AnimatePresence mode="wait">
-        {state === 'sent' ? (
+        {state === 'gmail' ? (
+          <motion.div key="gmail" className="msg__done" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <Mail size={40} />
+            <h3>Almost there</h3>
+            <p>Gmail opened with your message already typed. Press <b>Send</b> there to deliver it to me.</p>
+            <div className="msg__again">
+              <button type="button" className="btn btn--small" onClick={submit}><Mail size={16} /> Open Gmail again</button>
+              <button type="button" className="toggle" onClick={() => setState('idle')}><RotateCcw size={16} /> Edit message</button>
+            </div>
+          </motion.div>
+        ) : state === 'sent' ? (
           <motion.div key="sent" className="msg__done" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <CircleCheck size={40} />
             <h3>Delivered ✓</h3>
@@ -135,6 +151,10 @@ function MessageBox() {
                 {errors.email && <em>{errors.email}</em>}
               </label>
             </div>
+            <label className="msg__field"><span>Subject</span>
+              <input value={form.subject} onChange={set('subject')} placeholder="QA tester role at our company" aria-invalid={!!errors.subject} />
+              {errors.subject && <em>{errors.subject}</em>}
+            </label>
             <label className="msg__field"><span>Message</span>
               <textarea rows={4} value={form.message} onChange={set('message')} placeholder="Hi Sakshi, we're looking for a tester to join our team…" aria-invalid={!!errors.message} />
               {errors.message && <em>{errors.message}</em>}
@@ -142,7 +162,7 @@ function MessageBox() {
             <input type="checkbox" name="botcheck" className="msg__bot" tabIndex={-1} aria-hidden="true" />
             <div className="msg__foot">
               <button className="btn" type="submit" disabled={state === 'sending'}>
-                {state === 'sending' ? <><Loader2 size={18} className="spin" /> Sending…</> : <><Send size={17} /> Send message</>}
+                {state === 'sending' ? <><Loader2 size={18} className="spin" /> Sending…</> : <><Send size={17} /> {contact.formKey ? 'Send message' : 'Send via Gmail'}</>}
               </button>
               {state === 'failed' && <p className="msg__err">Couldn't send right now. <a href={`mailto:${contact.email}`}>Email me directly</a>.</p>}
             </div>
