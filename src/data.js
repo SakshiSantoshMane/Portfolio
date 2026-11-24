@@ -6,7 +6,7 @@ export const profile = {
   name: 'Sakshi Mane',
   role: 'Automation Tester',
   designation: 'Senior Analyst at Capgemini',
-  location: 'Pune, Maharashtra, India',
+  location: 'Navi Mumbai, Maharashtra, India',
   tagline: 'Building reliable software through quality, precision and continuous learning.',
   welcome:
     "Welcome to my professional portfolio! I'm Sakshi Mane, a Computer Engineering graduate currently working at Capgemini as a Senior Analyst. I enjoy exploring technology, understanding software systems, identifying problems and contributing to quality software solutions.",
@@ -154,7 +154,7 @@ export const contact = {
   phoneHref: 'tel:+919834698696',
   linkedin: 'https://www.linkedin.com/in/sakshi-mane-7867b5232/',
   linkedinLabel: 'linkedin.com/in/sakshi-mane-7867b5232',
-  location: 'Pune, Maharashtra, India',
+  location: 'Navi Mumbai, Maharashtra, India',
   // Web3Forms access key (free, safe to keep public). Until it is set, the form opens an email instead.
   formKey: null,
 }
