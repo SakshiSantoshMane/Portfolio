@@ -465,8 +465,10 @@ main, .footer { position: relative; z-index: 1; }
 .report__foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: .4rem; padding-top: .8rem; border-top: 1px dashed var(--line); min-height: 52px; }
 .report__foot > span:first-child { font: .8rem var(--mono); color: var(--muted); }
 .stamp { display: inline-block; padding: .35rem .75rem; border: 2px solid var(--pass); border-radius: 7px; color: var(--pass); font: 700 .9rem var(--mono); letter-spacing: .02em; }
-.clist { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-.clist .ccard { padding: .8rem .9rem; }
+.clist { display: grid; grid-template-columns: 1fr; gap: .6rem; }
+.clist .ccard { padding: .75rem .9rem; }
+.clist .ccard__icon { width: 42px; height: 42px; border-radius: 12px; }
+.ccard__info { overflow: hidden; }
 .msg { padding: 1.3rem; border-radius: 18px; background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid var(--line); box-shadow: 0 24px 50px -30px color-mix(in srgb, var(--accent) 45%, transparent); }
 .msg__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 .msg__tag { font: 700 .8rem var(--mono); color: var(--accent); letter-spacing: .04em; }
