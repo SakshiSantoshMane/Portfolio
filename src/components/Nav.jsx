@@ -34,7 +34,7 @@ export default function Nav({ theme, setTheme }) {
       <motion.div className="nav__progress" style={{ scaleX: progress }} aria-hidden="true" />
       <div className="nav__inner">
         <a href="#top" className="nav__brand" onClick={(e) => go(e, 'top')} aria-label="Sakshi Mane, back to top">
-          <span className="nav__logo">SM</span>
+          <span className="nav__logo nav__logo--photo"><img src={`${import.meta.env.BASE_URL}sakshi.jpg`} alt="Sakshi Mane" width="40" height="40" /></span>
           <span className="nav__name">Sakshi Mane</span>
         </a>
         <nav aria-label="Sections" className="nav__links">
