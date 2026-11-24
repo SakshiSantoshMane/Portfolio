@@ -338,15 +338,15 @@ body { background: var(--bg); }
 #root { position: relative; isolation: isolate; }
 main, .footer { position: relative; z-index: 1; }
 .backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.backdrop__blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: .55; }
+.backdrop__blob { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .4; }
 .backdrop__blob--a { width: 46vw; height: 46vw; left: -12vw; top: -10vw; background: radial-gradient(circle, #A5B4FC, transparent 65%); animation: blobA 22s ease-in-out infinite alternate; }
 .backdrop__blob--b { width: 40vw; height: 40vw; right: -10vw; top: 35vh; background: radial-gradient(circle, #86EFAC, transparent 65%); opacity: .38; animation: blobB 26s ease-in-out infinite alternate; }
 .backdrop__blob--c { width: 26vw; height: 26vw; left: 30vw; bottom: -12vw; background: radial-gradient(circle, #FCA5A5, transparent 65%); opacity: .28; animation: blobA 30s ease-in-out infinite alternate-reverse; }
 @keyframes blobA { to { transform: translate(8vw, 6vh) scale(1.12); } }
 @keyframes blobB { to { transform: translate(-6vw, -8vh) scale(.92); } }
-:root { --grid-lit: rgba(67,56,202,.32); --token: rgba(67,56,202,.28); }
-[data-theme="dark"] { --grid-lit: rgba(139,131,255,.4); --token: rgba(165,180,252,.26); }
-[data-theme="dark"] .backdrop__blob { opacity: .22; }
+:root { --grid-lit: rgba(67,56,202,.18); --token: rgba(67,56,202,.16); }
+[data-theme="dark"] { --grid-lit: rgba(139,131,255,.22); --token: rgba(165,180,252,.14); }
+[data-theme="dark"] .backdrop__blob { opacity: .14; }
 [data-theme="dark"] .backdrop__blob--b { opacity: .14; }
 [data-theme="dark"] .backdrop__blob--c { opacity: .1; }
 .backdrop__tokens { position: absolute; inset: 0; }
@@ -369,8 +369,8 @@ main, .footer { position: relative; z-index: 1; }
 .pagegrid__base { --g1: var(--grid); --g2: var(--grid-major); }
 .pagegrid__lit { --g1: var(--grid-lit); --g2: var(--grid-lit);
   -webkit-mask-image: radial-gradient(220px circle at var(--px) var(--py), #000, transparent 75%); mask-image: radial-gradient(220px circle at var(--px) var(--py), #000, transparent 75%); }
-:root { --grid: rgba(67,56,202,.07); --grid-major: rgba(67,56,202,.12); }
-[data-theme="dark"] { --grid: rgba(139,131,255,.09); --grid-major: rgba(139,131,255,.17); }
+:root { --grid: rgba(67,56,202,.035); --grid-major: rgba(67,56,202,.06); }
+[data-theme="dark"] { --grid: rgba(139,131,255,.045); --grid-major: rgba(139,131,255,.08); }
 /* cards sit on the paper: the grid shows through them */
 .card, .exp, .lab, .pcard, .edu, .award, .lang, .interests, .ccard, .hero__facts li, .btn--ghost, .icon-btn, .chip:not(.is-on), .skill {
   background: color-mix(in srgb, var(--surface) 80%, transparent); }
@@ -492,3 +492,7 @@ main, .footer { position: relative; z-index: 1; }
 .msg__done p { color: var(--muted); max-width: 34ch; }
 @media (max-width: 960px) { .finale { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .clist, .msg__row { grid-template-columns: 1fr; } .msg { padding: 1.1rem; } }
+
+/* softer background: grid slightly blurred and faded towards the edges, gentler scan line */
+.pagegrid__base { filter: blur(.6px); -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 45%, #000 40%, rgba(0,0,0,.35) 100%); mask-image: radial-gradient(ellipse 85% 70% at 50% 45%, #000 40%, rgba(0,0,0,.35) 100%); }
+.backdrop__scan { opacity: .45; }
