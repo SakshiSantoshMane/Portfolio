@@ -207,6 +207,7 @@ export function Footer() {
         <p className="muted">Senior Analyst at Capgemini</p>
       </div>
       <p className="footer__quote">Designed with passion. Driven by curiosity. Focused on quality.</p>
+      <p className="footer__fun">Made with 🍵 tea, 🐞 a few hundred retests and zero <span>“it works on my machine”</span> excuses.</p>
       <div className="footer__end">
         <p className="muted">© 2026 Sakshi Mane. All Rights Reserved.</p>
         <motion.button className="icon-btn" type="button" whileHover={{ y: -3 }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top"><ArrowUp size={18} /></motion.button>

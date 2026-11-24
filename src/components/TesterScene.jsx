@@ -55,6 +55,13 @@ function drawChip(ctx, w, h, { text, bg, fg, icon }) {
   ctx.fillText(icon ? `${icon} ${text}` : text, w / 2, h / 2 + 2)
 }
 
+function drawFound(ctx, w, h) {
+  ctx.clearRect(0, 0, w, h)
+  ctx.fillStyle = '#E5484D'; rr(ctx, 4, 4, w - 8, h - 8, (h - 8) / 2); ctx.fill()
+  ctx.fillStyle = '#fff'; ctx.font = `800 ${Math.round(h * 0.42)}px ${MONO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillText('BUG FOUND!', w / 2, h / 2 + 2)
+}
+
 function drawTicket(ctx, w, h) {
   ctx.clearRect(0, 0, w, h)
   ctx.fillStyle = '#FFFFFF'; rr(ctx, 4, 4, w - 8, h - 8, 22); ctx.fill()
@@ -105,55 +112,84 @@ function Bug({ bugRef }) {
   )
 }
 
-function Magnifier({ magRef }) {
+function Magnifier({ magRef, ringRef, glassRef }) {
   return (
     <group ref={magRef}>
-      <mesh><torusGeometry args={[0.24, 0.035, 16, 48]} /><meshStandardMaterial color="#4338CA" metalness={0.5} roughness={0.25} /></mesh>
-      <mesh><circleGeometry args={[0.23, 40]} /><meshPhysicalMaterial color="#BFE3FF" transparent opacity={0.28} roughness={0} transmission={0.4} /></mesh>
+      <mesh><torusGeometry args={[0.24, 0.035, 16, 48]} /><meshStandardMaterial ref={ringRef} color="#4338CA" emissive="#E5484D" emissiveIntensity={0} metalness={0.5} roughness={0.25} /></mesh>
+      <mesh><circleGeometry args={[0.23, 40]} /><meshPhysicalMaterial ref={glassRef} color="#BFE3FF" transparent opacity={0.28} roughness={0} transmission={0.4} /></mesh>
       <mesh position={[0.25, -0.25, 0]} rotation={[0, 0, Math.PI / 4]}><cylinderGeometry args={[0.04, 0.05, 0.38, 16]} /><meshStandardMaterial color="#1E1B4B" roughness={0.5} /></mesh>
     </group>
   )
 }
 
 function Scene({ dark }) {
-  const root = useRef(), bug = useRef(), mag = useRef(), check = useRef(), ticket = useRef()
+  const root = useRef(), bug = useRef(), mag = useRef(), check = useRef(), ticket = useRef(), ring = useRef(), glass = useRef(), found = useRef()
   const page = useCanvasTexture(900, 540, (c, w, h) => drawPage(c, w, h, dark), [dark])
   const checkTex = useCanvasTexture(128, 128, (c) => {
     c.fillStyle = '#16A34A'; c.beginPath(); c.arc(64, 64, 58, 0, 7); c.fill()
     c.strokeStyle = '#fff'; c.lineWidth = 14; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(36, 66); c.lineTo(56, 86); c.lineTo(94, 44); c.stroke()
   })
   const ticketTex = useCanvasTexture(400, 210, drawTicket)
+  const foundTex = useCanvasTexture(360, 96, drawFound)
+  const indigo = useMemo(() => new THREE.Color('#4338CA'), []), red = useMemo(() => new THREE.Color('#E5484D'), [])
   const frame = dark ? '#1C2547' : '#FFFFFF'
-  const LOOP = 8
+  const LOOP = 10
+  // timeline (seconds): hunt 0–4 · lock on and blink 4–5.6 · bug fixed 5.6–6 · verified ticket 6–9.2 · reset
+  const HUNT = 4, LOCK = 4.25, FIX = 5.6
+  const bugAt = (t) => [-1.0 + Math.sin(t * 0.9) * 0.9, -0.15 + Math.sin(t * 1.7) * 0.45]
 
   useFrame(({ clock, pointer }) => {
     const t = clock.elapsedTime % LOOP
     // gentle tilt that follows the pointer
     root.current.rotation.y = THREE.MathUtils.lerp(root.current.rotation.y, -0.32 + pointer.x * 0.25, 0.05)
     root.current.rotation.x = THREE.MathUtils.lerp(root.current.rotation.x, 0.06 - pointer.y * 0.12, 0.05)
-    // the bug wanders over the page (screen spans x -1.5..1.5, y -0.9..0.85)
-    const caught = t > 4.2
-    const bx = -1.0 + Math.sin(t * 0.9) * 0.9, by = -0.15 + Math.sin(t * 1.7) * 0.45
-    if (!caught) {
+
+    // 1. the bug wanders over the page until it is caught, then freezes and twitches
+    const [cx, cy] = bugAt(HUNT)
+    if (t < HUNT) {
+      const [bx, by] = bugAt(t)
       bug.current.position.set(bx, by, 0.12)
-      const dx = Math.cos(t * 0.9) * 0.81, dy = Math.cos(t * 1.7) * 0.76
-      bug.current.rotation.z = Math.atan2(dy, dx)
+      bug.current.rotation.z = Math.atan2(Math.cos(t * 1.7) * 0.76, Math.cos(t * 0.9) * 0.81)
+      bug.current.scale.setScalar(1)
+    } else if (t < FIX) {
+      bug.current.position.set(cx + Math.sin(t * 60) * 0.008, cy, 0.12)
       bug.current.scale.setScalar(1)
     } else {
-      const k = Math.max(0, 1 - (t - 4.2) / 0.35)
-      bug.current.scale.setScalar(k)
+      bug.current.scale.setScalar(Math.max(0.0001, 1 - (t - FIX) / 0.3))
     }
-    // the magnifier hunts it down
-    const chase = Math.min(1, t / 4.2)
-    const mx = THREE.MathUtils.lerp(1.6, bx, chase * chase), my = THREE.MathUtils.lerp(1.0, by, chase * chase)
-    if (!caught) mag.current.position.set(mx, my, 0.35)
-    else mag.current.position.lerp(new THREE.Vector3(1.7, 1.05, 0.35), 0.04)
-    // a green check replaces the bug, then the ticket shows "verified"
-    const ct = THREE.MathUtils.clamp((t - 4.3) / 0.35, 0, 1)
-    const cOut = t > 7.3 ? THREE.MathUtils.clamp(1 - (t - 7.3) / 0.4, 0, 1) : 1
-    check.current.position.set(bug.current.position.x, bug.current.position.y, 0.14)
-    check.current.scale.setScalar(0.0001 + ct * cOut * 0.42 * (1 + Math.sin(Math.min(1, ct) * Math.PI) * 0.25))
-    const tk = THREE.MathUtils.clamp((t - 4.8) / 0.4, 0, 1) * cOut
+
+    // 2. the lens chases it, stops right on top of it, then leaves once it is fixed
+    const target = new THREE.Vector3(cx, cy, 0.35)
+    if (t < HUNT) {
+      const k = Math.pow(t / HUNT, 2), [bx, by] = bugAt(t)
+      mag.current.position.set(THREE.MathUtils.lerp(1.6, bx, k), THREE.MathUtils.lerp(1.0, by, k), 0.35)
+    } else if (t < FIX + 0.4) {
+      mag.current.position.lerp(target, 0.25)
+    } else {
+      mag.current.position.lerp(new THREE.Vector3(1.7, 1.05, 0.35), 0.05)
+    }
+
+    // 3. while locked on, the lens blinks red and pulses
+    const locked = t > LOCK && t < FIX
+    const blink = locked && Math.floor((t - LOCK) / 0.18) % 2 === 0
+    ring.current.color.copy(blink ? red : indigo)
+    ring.current.emissiveIntensity = blink ? 0.9 : 0
+    glass.current.opacity = blink ? 0.5 : 0.28
+    glass.current.color.set(blink ? '#FECACA' : '#BFE3FF')
+    mag.current.scale.setScalar(locked ? 1 + Math.abs(Math.sin((t - LOCK) * 9)) * 0.12 : 1)
+
+    // 4. "BUG FOUND!" pops up above the lens
+    const fIn = THREE.MathUtils.clamp((t - LOCK) / 0.25, 0, 1), fOut = THREE.MathUtils.clamp(1 - (t - (FIX + 0.5)) / 0.3, 0, 1)
+    const fk = fIn * fOut
+    found.current.position.set(mag.current.position.x, mag.current.position.y + 0.42 + (1 - fIn) * -0.15, 0.5)
+    found.current.scale.setScalar(0.0001 + fk * (1 + (fIn < 1 ? 0 : Math.sin(t * 12) * 0.04)))
+
+    // 5. a green check replaces the bug, then the ticket shows "verified"
+    const ct = THREE.MathUtils.clamp((t - FIX - 0.1) / 0.35, 0, 1)
+    const cOut = t > 9.2 ? THREE.MathUtils.clamp(1 - (t - 9.2) / 0.4, 0, 1) : 1
+    check.current.position.set(cx, cy, 0.14)
+    check.current.scale.setScalar(0.0001 + ct * cOut * 0.42 * (1 + Math.sin(ct * Math.PI) * 0.25))
+    const tk = THREE.MathUtils.clamp((t - FIX - 0.5) / 0.4, 0, 1) * cOut
     ticket.current.scale.setScalar(0.0001 + tk)
     ticket.current.position.y = 1.05 + (1 - tk) * -0.3
   })
@@ -173,7 +209,10 @@ function Scene({ dark }) {
         <mesh position={[0, -0.08, 0.073]}><planeGeometry args={[3.18, 1.92]} /><meshBasicMaterial map={page} toneMapped={false} /></mesh>
         <Bug bugRef={bug} />
         <mesh ref={check}><planeGeometry args={[1, 1]} /><meshBasicMaterial map={checkTex} transparent toneMapped={false} /></mesh>
-        <Magnifier magRef={mag} />
+        <Magnifier magRef={mag} ringRef={ring} glassRef={glass} />
+        <group ref={found}>
+          <Billboard><mesh><planeGeometry args={[0.9, 0.24]} /><meshBasicMaterial map={foundTex} transparent toneMapped={false} depthTest={false} /></mesh></Billboard>
+        </group>
         <group ref={ticket} position={[1.25, 1.05, 0.5]}>
           <Billboard><mesh><planeGeometry args={[1.25, 0.66]} /><meshBasicMaterial map={ticketTex} transparent toneMapped={false} /></mesh></Billboard>
         </group>
